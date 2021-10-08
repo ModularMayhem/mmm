@@ -22,6 +22,7 @@ FM in? (Why not? Just a jack.)
 Protection diodes!
 10/5/-5/-10 Volt or 12/5/-5/-12?
 Resistors on big X5Rs!
+LM1117? 4040?
 
 - Resonance enhancment?
 Doesn't everyone love a screaming filter?
