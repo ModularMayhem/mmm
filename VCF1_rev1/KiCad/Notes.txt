@@ -24,6 +24,9 @@ Protection diodes!
 Resistors on big X5Rs!
 LM1117? 4040?
 
+- Filter
+Should it be possible to select just VCF1?
+
 - Resonance enhancment?
 Doesn't everyone love a screaming filter?
 
