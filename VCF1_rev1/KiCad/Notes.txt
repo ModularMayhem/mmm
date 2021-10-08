@@ -1,0 +1,33 @@
+Left to do:
+
+- VCA?
+Should we?
+3080?
+
+- EG?
+Should we?
+AR? AR/AD? ADSR?
+
+- Mixer
+1/2 + 3 or some other configuration?
+Overdrive? On one or all?
+
+- Panel schematics
+One hunking big frequency knob, the rest small trimmers?
+Does a hunking big reso knog make sense?
+How many CVs and to what?
+FM in? (Why not? Just a jack.)
+
+- Power schematics
+Protection diodes!
+10/5/-5/-10 Volt or 12/5/-5/-12?
+Resistors on big X5Rs!
+
+- Resonance enhancment?
+Doesn't everyone love a screaming filter?
+
+- Resonance limiter
+Can one limiter be used for all LP/BP/HP?
+Which version of limit?
+Switchable hard/soft/tube?
+LED feedback?
