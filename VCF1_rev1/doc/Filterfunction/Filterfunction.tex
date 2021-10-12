@@ -1,0 +1,249 @@
+\documentclass[12pt]{article}
+\usepackage{circuitikz}
+\usepackage{tikz}
+
+\begin{document}
+\tikzstyle{block} = [draw, rectangle, minimum height=3em, minimum width=6em]
+
+\section*{Input mixer}
+
+The input stage contains of a small mixer with two potentiometers;
+one mix between input 1 and input 2 and the other is the volume for
+input 3 that also goes through an overdrive.
+
+\bigskip
+
+\begin{tikzpicture}
+    \draw (4,3) node[adder](sum) {};
+    \node [block] at (4,1) (overdrive) {Overdrive};
+
+    \draw (0,6) node[above]{$input1$} -- (1,6) to[pR, name=mix] (1,4);
+    \draw (0,4) node[above]{$input2$} -- (1,4);
+    \draw (mix.wiper) -- (4,5) [->] to(sum.north);
+
+    \draw (0,2) node[above]{$input3$} -- (1,2) to[pR, name=vol] (1,0) node[sground]{};
+    \draw (vol.wiper) [->] to(overdrive.west);
+    \draw (overdrive.north) [->] to(sum.south);
+
+    \draw (sum.east) -- (6,3) [->] node[above]{$to filters$};
+\end{tikzpicture}
+
+\pagebreak
+
+\section*{Filter(s)}
+
+Right now the idea is to have a filter chain with a pre-processing filter,
+a dual filter that can be configured in different ways and a post-processing
+filter. This is, of course, not definitely settled. Yet.
+
+\bigskip
+
+\begin{tikzpicture}
+    \node [block] at (2,0) (vcf1) {VCF1};
+    \node [block] at (6,0) (vcf2) {VCF2/VCF3};
+    \node [block] at (10,0) (vcf4) {VCF4};
+
+    \draw (0,0) node[above]{$input$} [->] to(vcf1.west);
+    \draw (vcf1.east) -- (vcf2.west) [->];
+    \draw (vcf2.east) -- (vcf4.west) [->];
+    \draw (vcf4.east) -- (12,0) [->] node[above]{$output$};
+\end{tikzpicture}
+
+\bigskip
+
+The filter is based on AS/CEM3350, which is a dual 2 pole filter, together with
+s-load of MUXes that allows for reconfiguration of the setup. All the filters
+has MUXes that allows them to be switched between LP/BP/HP, the default configuration
+is BP, if the left MUX is activated it's turned into a LP-filter and the right turns
+it into a HP.
+
+\bigskip
+
+\begin{tikzpicture}
+    \node [cute spdt down] at (1,0) (lp) {};
+    \node [cute spdt down, xscale=-1] at (11,0) (hp) {};
+    \node [block] at (6,0) (vcf) {VCF}
+    ($(vcf.west)!0.68!(vcf.north west)$) coordinate (vcfina)
+    ($(vcf.west)!0.68!(vcf.south west)$) coordinate (vcfinb)
+    ($(vcf.east)!0.68!(vcf.north east)$) coordinate (vcfouta)
+    ($(vcf.east)!0.68!(vcf.south east)$) coordinate (vcfoutb);
+
+    \draw (0,0) node[above]{$input$} to(lp.in);
+    \draw (lp.out 1) -- (vcfina) node[midway,above]{$LP$};
+    \draw (lp.out 2) -- (vcfinb) node[midway,above]{$BP/HP$};
+    \draw (hp.out 1) -- (vcfouta) node[midway,above]{$HP$};
+    \draw (hp.out 2) -- (vcfoutb) node[midway,above]{$LP/BP$};
+    \draw (hp.in) -- (12,0) [->] node[above]{$output$};
+\end{tikzpicture}
+
+\bigskip
+
+The VCF2 and VCF3 creates a filter block where the filters can run in parallel,
+serial or feedback mode.
+
+\pagebreak
+
+\subsection*{Parallel mode}
+
+In this mode both VFC2 and VCF3 are fed the signal from the input and the
+mixer potentiometer mix between the VCF outputs.
+
+\bigskip
+
+\begin{tikzpicture}
+    % Signal path pot
+    \node [cute spdt down] at (6,2) (potsw) {};
+    \draw (potsw.in) -- (5,2) to[pR, name=mix] (5,0);
+
+    % Signal path output
+    \node [cute spdt up] at (6,-3) (outsw) {};
+    \draw (6.35,1) -- (outsw.out 1);
+    \draw (outsw.in) -- (5,-3) -- (5, -4) [->] node[below]{$output$};
+
+    % Signal path Overdrive
+    \node [block] at (3,0) (od) {Overdrive};
+    \node [cute spdt up] at (1,0) (odsw) {};
+    \draw (3,1) -- (1.35,1) -- (odsw.out 1);
+    \draw (od.south) -- (3,-1) -- (1.35,-1) -- (odsw.out 2);
+    \draw (odsw.in) -- (0.65,-1.5) -- (5,-1.5) -- (mix.east);
+
+    % Signal path Inverter
+    \node [block] at (3,3) (inv) {Inverter};
+    \node [cute spdt up] at (1,3) (invsw) {};
+    \draw (3,4) -- (1.35,4) -- (invsw.out 1);
+    \draw (inv.south) -- (3,2) -- (1.35,2) -- (invsw.out 2);
+    \draw (invsw.in) -- (0.65,1.5) -- (3,1.5) -- (od.north) [->];
+
+    % Signal path VCF2
+    \node [block] at (3,6) (vcf2) {VCF2};
+    \node [cute spdt up] at (3.35,9) (in2sw) {};
+    \draw (in2sw.in) -- (vcf2.north) [->];
+    \draw (vcf2.south) -- (inv.north) [->];
+    \draw (8,5) -- (6.45,5);
+    \draw (6.25,5) -- (5,5) -- (5,8.55) -- (in2sw.out 2);
+
+    % Signal path VCF3
+    \node [block] at (8,6) (vcf3) {VCF3};
+    \node [cute spdt up] at (8.35,9) (in3sw) {};
+    \draw (in3sw.in) -- (vcf3.north) [->];
+    \draw (vcf3.south) -- (8, -3.42) -- (outsw.out 2);
+    \draw (8,1.57) -- (potsw.out 2);
+    \draw (mix.wiper) -- (7.9,1);
+    \draw (8.1,1) -- (10,1) -- (10,8.55) -- (in3sw.out 2);
+
+    % Signal path input
+    \draw (6.35,11) node[above]{$input$} -- (potsw.out 1);
+    \draw (in2sw.out 1) -- (3.71,10) -- (8.71,10) -- (in3sw.out 1);
+\end{tikzpicture}
+
+\pagebreak
+
+\subsection*{Serial mode}
+
+In this mode the input goes to VCF2 and the potentiometer works as a wet/dry
+mix that feeds the input of VCF3. Output is taken directly from VCF3.
+
+\bigskip
+
+\begin{tikzpicture}
+    % Signal path pot
+    \node [cute spdt up] at (6,2) (potsw) {};
+    \draw (potsw.in) -- (5,2) to[pR, name=mix] (5,0);
+
+    % Signal path output
+    \node [cute spdt down] at (6,-3) (outsw) {};
+    \draw (6.35,1) -- (outsw.out 1);
+    \draw (outsw.in) -- (5,-3) -- (5, -4) [->] node[below]{$output$};
+
+    % Signal path Overdrive
+    \node [block] at (3,0) (od) {Overdrive};
+    \node [cute spdt up] at (1,0) (odsw) {};
+    \draw (3,1) -- (1.35,1) -- (odsw.out 1);
+    \draw (od.south) -- (3,-1) -- (1.35,-1) -- (odsw.out 2);
+    \draw (odsw.in) -- (0.65,-1.5) -- (5,-1.5) -- (mix.east);
+
+    % Signal path Inverter
+    \node [block] at (3,3) (inv) {Inverter};
+    \node [cute spdt up] at (1,3) (invsw) {};
+    \draw (3,4) -- (1.35,4) -- (invsw.out 1);
+    \draw (inv.south) -- (3,2) -- (1.35,2) -- (invsw.out 2);
+    \draw (invsw.in) -- (0.65,1.5) -- (3,1.5) -- (od.north) [->];
+
+    % Signal path VCF2
+    \node [block] at (3,6) (vcf2) {VCF2};
+    \node [cute spdt up] at (3.35,9) (in2sw) {};
+    \draw (in2sw.in) -- (vcf2.north) [->];
+    \draw (vcf2.south) -- (inv.north) [->];
+    \draw (8,5) -- (6.45,5);
+    \draw (6.25,5) -- (5,5) -- (5,8.55) -- (in2sw.out 2);
+
+    % Signal path VCF3
+    \node [block] at (8,6) (vcf3) {VCF3};
+    \node [cute spdt down] at (8.35,9) (in3sw) {};
+    \draw (in3sw.in) -- (vcf3.north) [->];
+    \draw (vcf3.south) -- (8, -3.42) -- (outsw.out 2);
+    \draw (8,1.57) -- (potsw.out 2);
+    \draw (mix.wiper) -- (7.9,1);
+    \draw (8.1,1) -- (10,1) -- (10,8.55) -- (in3sw.out 2);
+
+    % Signal path input
+    \draw (6.35,11) node[above]{$input$} -- (potsw.out 1);
+    \draw (in2sw.out 1) -- (3.71,10) -- (8.71,10) -- (in3sw.out 1);
+\end{tikzpicture}
+
+\pagebreak
+
+\subsection*{Feedback mode}
+
+In this mode the input goes to the potentiometer that mix between input and
+the output from VCF2, this is then fed into VCF3 which output then goes out
+from the filterblock and is also fed into VCF2. VCF2 therefore works like a
+filtered feedback for VCF3.
+
+\begin{tikzpicture}
+    % Signal path pot
+    \node [cute spdt up] at (6,2) (potsw) {};
+    \draw (potsw.in) -- (5,2) to[pR, name=mix] (5,0);
+
+    % Signal path output
+    \node [cute spdt down] at (6,-3) (outsw) {};
+    \draw (6.35,1) -- (outsw.out 1);
+    \draw (outsw.in) -- (5,-3) -- (5, -4) [->] node[below]{$output$};
+
+    % Signal path Overdrive
+    \node [block] at (3,0) (od) {Overdrive};
+    \node [cute spdt up] at (1,0) (odsw) {};
+    \draw (3,1) -- (1.35,1) -- (odsw.out 1);
+    \draw (od.south) -- (3,-1) -- (1.35,-1) -- (odsw.out 2);
+    \draw (odsw.in) -- (0.65,-1.5) -- (5,-1.5) -- (mix.east);
+
+    % Signal path Inverter
+    \node [block] at (3,3) (inv) {Inverter};
+    \node [cute spdt up] at (1,3) (invsw) {};
+    \draw (3,4) -- (1.35,4) -- (invsw.out 1);
+    \draw (inv.south) -- (3,2) -- (1.35,2) -- (invsw.out 2);
+    \draw (invsw.in) -- (0.65,1.5) -- (3,1.5) -- (od.north) [->];
+
+    % Signal path VCF2
+    \node [block] at (3,6) (vcf2) {VCF2};
+    \node [cute spdt down] at (3.35,9) (in2sw) {};
+    \draw (in2sw.in) -- (vcf2.north) [->];
+    \draw (vcf2.south) -- (inv.north) [->];
+    \draw (8,5) -- (6.45,5);
+    \draw (6.25,5) -- (5,5) -- (5,8.55) -- (in2sw.out 2);
+
+    % Signal path VCF3
+    \node [block] at (8,6) (vcf3) {VCF3};
+    \node [cute spdt down] at (8.35,9) (in3sw) {};
+    \draw (in3sw.in) -- (vcf3.north) [->];
+    \draw (vcf3.south) -- (8, -3.42) -- (outsw.out 2);
+    \draw (8,1.57) -- (potsw.out 2);
+    \draw (mix.wiper) -- (7.9,1);
+    \draw (8.1,1) -- (10,1) -- (10,8.55) -- (in3sw.out 2);
+
+    % Signal path input
+    \draw (6.35,11) node[above]{$input$} -- (potsw.out 1);
+    \draw (in2sw.out 1) -- (3.71,10) -- (8.71,10) -- (in3sw.out 1);
+\end{tikzpicture}
+
+\end{document}

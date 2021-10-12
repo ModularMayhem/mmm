@@ -28,5 +28,13 @@ fp-info-cache
 *.xml
 *.csv
 
+# LaTeX
+*.aux
+*.fdb_latexmk
+*.synctex.gz
+*.fls
+*.log
+
 # Other
 .DS_Store
+.vscode
