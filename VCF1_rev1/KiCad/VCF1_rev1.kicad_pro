@@ -312,7 +312,7 @@
       "workbook_filename": ""
     },
     "page_layout_descr_file": "",
-    "plot_directory": "",
+    "plot_directory": "../doc/",
     "spice_adjust_passive_values": false,
     "spice_external_command": "spice \"%I\"",
     "subpart_first_id": 65,
@@ -325,15 +325,23 @@
     ],
     [
       "7a009112-bd91-4202-846b-c11067a8bb11",
-      "CEM3350_1"
+      "VCF_1_4"
     ],
     [
       "564a8fda-9fa4-4d91-9c31-3efbc4450468",
-      "CEM3350_2"
+      "VCF_2"
     ],
     [
       "59dbe5a1-ad05-4626-8b58-29801325977b",
       "Input_mixer"
+    ],
+    [
+      "514a7006-6769-4162-8732-e93fcd4966e0",
+      "Power"
+    ],
+    [
+      "6aa8c2c8-6fa9-4a01-8339-1e698d29cd77",
+      "VCF_3"
     ]
   ],
   "text_variables": {}
